@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduProof AI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Навигация EduProof AI">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">EP</div>
+          <div>
+            <strong>EduProof AI</strong>
+            <span>Academic trust protocol</span>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Разделы приложения">
+          <button class="nav-tab active" data-tab="review" type="button">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M15 3v5h5"/><path d="m8 14 2 2 5-6"/></svg>
+            </span>
+            Проверка
+          </button>
+          <button class="nav-tab" data-tab="registry" type="button">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/><path d="M7 4v16"/><path d="M17 4v16"/></svg>
+            </span>
+            Реестр
+          </button>
+          <button class="nav-tab" data-tab="economy" type="button">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c0-1.7-2.1-2.5-5-2.5S7 5.8 7 7.5s2.1 2.5 5 2.5 5 .8 5 2.5-2.1 2.5-5 2.5-5-.8-5-2.5"/><path d="M5 19h14"/></svg>
+            </span>
+            Экономика
+          </button>
+          <button class="nav-tab" data-tab="architecture" type="button">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M6 4h12v5H6z"/><path d="M4 15h7v5H4z"/><path d="M13 15h7v5h-7z"/><path d="M12 9v3"/><path d="M7.5 12h9"/><path d="M7.5 12v3"/><path d="M16.5 12v3"/></svg>
+            </span>
+            Архитектура
+          </button>
+          <button class="nav-tab" data-tab="roadmap" type="button">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 19c2-8 12-6 14-14"/><path d="M6 8h.01"/><path d="M12 13h.01"/><path d="M18 6h.01"/><path d="M4 20h16"/></svg>
+            </span>
+            Roadmap
+          </button>
+        </nav>
+
+        <div class="network-card">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="networkName">Ganache Local</strong>
+            <span id="networkLabel">Truffle RPC</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Децентрализованная проверка учебных работ</p>
+            <h1>AI-анализ, прозрачный реестр и NFT-сертификат подлинности</h1>
+          </div>
+          <div class="wallet-panel">
+            <span class="wallet-label">Баланс</span>
+            <strong id="walletBalance">1 240 EDP</strong>
+            <button class="icon-button" id="resetDemo" type="button" title="Сбросить демо">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-13.7-3.7L4 7.6"/><path d="M4 15a8 8 0 0 0 13.7 3.7L20 16.4"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="ops-dashboard" aria-label="Статус системы">
+          <div class="ops-card">
+            <span>Backend API</span>
+            <strong id="backendStatus">проверяется</strong>
+          </div>
+          <div class="ops-card">
+            <span>AI режим</span>
+            <strong id="aiStatus">Ollama / fallback</strong>
+          </div>
+          <div class="ops-card">
+            <span>Корпус</span>
+            <strong id="corpusStatus">0 источников</strong>
+          </div>
+          <div class="ops-card">
+            <span>Chain</span>
+            <strong id="chainStatus">Truffle / fallback</strong>
+          </div>
+          <div class="ops-card">
+            <span>Ganache</span>
+            <strong id="ganacheStatus">проверяется</strong>
+          </div>
+          <div class="ops-card">
+            <span>Contract</span>
+            <strong id="contractStatus">проверяется</strong>
+          </div>
+        </section>
+
+        <section class="process-stepper" id="processStepper" aria-label="Pipeline">
+          <div class="process-step active" data-step="draft">
+            <span>1</span>
+            <strong>Заявка</strong>
+          </div>
+          <div class="process-step" data-step="analysis">
+            <span>2</span>
+            <strong>AI + антиплагиат</strong>
+          </div>
+          <div class="process-step" data-step="metadata">
+            <span>3</span>
+            <strong>IPFS metadata</strong>
+          </div>
+          <div class="process-step" data-step="mint">
+            <span>4</span>
+            <strong>NFT + реестр</strong>
+          </div>
+        </section>
+
+        <section class="tab-panel active" id="tab-review">
+          <div class="review-grid">
+            <form class="surface form-panel" id="workForm">
+              <div class="section-title">
+                <span class="section-kicker">Submission</span>
+                <h2>Заявка на проверку</h2>
+              </div>
+
+              <div class="field-grid">
+                <label>
+                  Автор
+                  <input id="authorName" name="authorName" type="text" value="Елизавета Варламова" />
+                </label>
+                <label>
+                  Вуз
+                  <input id="institution" name="institution" type="text" value="Магистратура, МПМ-25-1" />
+                </label>
+              </div>
+
+              <label>
+                Название работы
+                <input id="workTitle" name="workTitle" type="text" value="EduProof AI: децентрализованная проверка учебных работ" />
+              </label>
+
+              <div class="field-grid">
+                <label>
+                  Тип работы
+                  <select id="workType" name="workType">
+                    <option>Итоговый проект</option>
+                    <option>Курсовая работа</option>
+                    <option>Научная статья</option>
+                    <option>Лабораторная работа</option>
+                  </select>
+                </label>
+                <label>
+                  Файл
+                  <input id="fileInput" name="fileInput" type="file" accept=".txt,.md,.csv,.json,text/plain,text/markdown" />
+                </label>
+              </div>
+
+              <label>
+                Текст или аннотация работы
+                <textarea id="workText" name="workText" rows="9"></textarea>
+              </label>
+              <div class="text-tools">
+                <span id="wordCount">0 слов</span>
+                <span id="textQuality">Добавьте текст для анализа</span>
+              </div>
+
+              <div class="control-row">
+                <label class="range-field">
+                  Строгость AI <span id="strictnessValue">3/5</span>
+                  <input id="strictness" name="strictness" type="range" min="1" max="5" value="3" />
+                </label>
+                <label class="checkbox-field">
+                  <input id="publicRegistry" name="publicRegistry" type="checkbox" checked />
+                  Публичная запись
+                </label>
+              </div>
+
+              <div class="action-row">
+                <button class="secondary-button" id="loadSample" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+                  Пример
+                </button>
+                <button class="primary-button" id="analyzeButton" type="submit">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  <span>Проверить работу</span>
+                </button>
+              </div>
+            </form>
+
+            <section class="surface score-panel" aria-live="polite">
+              <div class="section-title">
+                <span class="section-kicker">AI report</span>
+                <h2>Результат проверки</h2>
+              </div>
+
+              <div class="score-meter">
+                <svg viewBox="0 0 160 160" role="img" aria-label="Итоговый рейтинг">
+                  <circle cx="80" cy="80" r="68" class="meter-track"></circle>
+                  <circle cx="80" cy="80" r="68" class="meter-value" id="meterValue"></circle>
+                </svg>
+                <div class="score-copy">
+                  <strong id="overallScore">0</strong>
+                  <span id="riskLabel">Ожидает анализа</span>
+                </div>
+              </div>
+
+              <div class="metric-list">
+                <div class="result-strip">
+                  <div>
+                    <span>Совпадения</span>
+                    <strong id="plagiarismValue">0%</strong>
+                  </div>
+                  <div>
+                    <span>IPFS</span>
+                    <strong id="ipfsValue">-</strong>
+                  </div>
+                  <div>
+                    <span>Tx</span>
+                    <strong id="txValue">-</strong>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span>Оригинальность</span>
+                  <div class="bar"><i id="originalityBar"></i></div>
+                  <strong id="originalityValue">0%</strong>
+                </div>
+                <div class="metric-item">
+                  <span>Авторский стиль</span>
+                  <div class="bar"><i id="authorshipBar"></i></div>
+                  <strong id="authorshipValue">0%</strong>
+                </div>
+                <div class="metric-item">
+                  <span>Академическая структура</span>
+                  <div class="bar"><i id="structureBar"></i></div>
+                  <strong id="structureValue">0%</strong>
+                </div>
+              </div>
+
+              <div class="report-box" id="reportBox">
+                <p>После проверки здесь появятся хеш работы, AI-отчет, стоимость выпуска и статус сертификата.</p>
+              </div>
+
+              <div class="action-row report-actions">
+                <button class="secondary-button" id="exportReport" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                  Экспорт отчета
+                </button>
+                <button class="primary-button" id="mintButton" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="m4 7 8 4 8-4"/><path d="M12 11v10"/></svg>
+                  Выпустить NFT-сертификат
+                </button>
+              </div>
+            </section>
+
+            <section class="surface certificate-panel">
+              <div class="section-title">
+                <span class="section-kicker">Certificate</span>
+                <h2>NFT-предпросмотр</h2>
+              </div>
+
+              <div class="certificate-preview">
+                <div class="certificate-ribbon">Soulbound NFT</div>
+                <div class="certificate-seal">EP</div>
+                <p>EduProof AI Certificate</p>
+                <h3 id="certificateTitle">Работа еще не проверена</h3>
+                <dl>
+                  <div>
+                    <dt>Token ID</dt>
+                    <dd id="previewToken">-</dd>
+                  </div>
+                  <div>
+                    <dt>Score</dt>
+                    <dd id="previewScore">-</dd>
+                  </div>
+                  <div>
+                    <dt>Hash</dt>
+                    <dd id="previewHash">-</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="mini-ledger">
+                <div>
+                  <span>Комиссия проверки</span>
+                  <strong id="feeValue">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Сжигание</span>
+                  <strong id="burnValue">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Валидаторам</span>
+                  <strong id="validatorValue">0 EDP</strong>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-registry">
+          <div class="registry-layout">
+            <section class="surface">
+              <div class="section-title">
+                <span class="section-kicker">On-chain registry</span>
+                <h2>Реестр сертификатов</h2>
+              </div>
+              <div class="registry-tools">
+                <label>
+                  Поиск
+                  <input id="registrySearch" type="search" placeholder="Token ID, автор, хеш" />
+                </label>
+                <button class="secondary-button" id="exportRegistry" type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                  JSON
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Token</th>
+                      <th>Автор</th>
+                      <th>Работа</th>
+                      <th>Score</th>
+                      <th>Дата</th>
+                    </tr>
+                  </thead>
+                  <tbody id="registryBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="surface">
+              <div class="section-title">
+                <span class="section-kicker">Verifier</span>
+                <h2>Проверка подлинности</h2>
+              </div>
+              <label>
+                Token ID или хеш работы
+                <input id="verifyInput" type="text" placeholder="EDP-0001 или 0x..." />
+              </label>
+              <button class="primary-button wide" id="verifyButton" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+                Проверить запись
+              </button>
+              <div class="verify-result" id="verifyResult">
+                <strong>Нет запроса</strong>
+                <span>Введите идентификатор сертификата из реестра.</span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-economy">
+          <div class="economy-grid">
+            <section class="surface">
+              <div class="section-title">
+                <span class="section-kicker">Token utility</span>
+                <h2>Экономика EDP</h2>
+              </div>
+              <div class="token-stats">
+                <div>
+                  <span>Max supply</span>
+                  <strong>10 000 000 EDP</strong>
+                </div>
+                <div>
+                  <span>Fee burn</span>
+                  <strong>35%</strong>
+                </div>
+                <div>
+                  <span>Validators</span>
+                  <strong>40%</strong>
+                </div>
+                <div>
+                  <span>Treasury</span>
+                  <strong>25%</strong>
+                </div>
+              </div>
+              <div class="economy-flow">
+                <article>
+                  <span>Кто платит</span>
+                  <strong>Студент, вуз или корпоративный проверяющий</strong>
+                  <p>Платеж возникает при AI-проверке, выпуске NFT-сертификата и платной API-верификации. Для учебного MVP комиссия считается в EDP, чтобы показать токеномику без фиатного биллинга.</p>
+                </article>
+                <article>
+                  <span>За что платят</span>
+                  <strong>AI-анализ + доказуемая сертификация</strong>
+                  <p>Пользователь получает не просто процент оригинальности, а проверяемый результат: <code>workHash</code>, <code>reportHash</code>, IPFS metadata и NFT-запись в blockchain registry.</p>
+                </article>
+                <article>
+                  <span>Зачем токен</span>
+                  <strong>Связывает спрос, качество и децентрализацию</strong>
+                  <p>EDP оплачивает вычисления, мотивирует валидаторов хранить и проверять metadata, а burn снижает обращающееся предложение при росте количества проверок.</p>
+                </article>
+              </div>
+              <div class="unit-economics">
+                <h3>Unit economics одной проверки</h3>
+                <div class="fee-split">
+                  <div>
+                    <span>27 EDP</span>
+                    <strong>средний чек</strong>
+                    <p>18 EDP базовая проверка + 9 EDP за расширенный AI-отчет и NFT-mint.</p>
+                  </div>
+                  <div>
+                    <span>35%</span>
+                    <strong>burn</strong>
+                    <p>Сжигается после оплаты, чтобы рост использования уменьшал доступное предложение.</p>
+                  </div>
+                  <div>
+                    <span>40%</span>
+                    <strong>валидаторы</strong>
+                    <p>Вознаграждение за подтверждение хешей, доступность metadata и независимую проверку статуса.</p>
+                  </div>
+                  <div>
+                    <span>25%</span>
+                    <strong>treasury</strong>
+                    <p>Развитие AI-моделей, гранты вузам, поддержка IPFS-пинов и инфраструктуры.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="token-rationale">
+                <strong>Мотивация для инвесторов и участников</strong>
+                <p>Если число проверок растет, увеличиваются комиссии, объем burn и спрос на stake валидаторов. Вузам выгодно подключаться, потому что сертификаты становятся переносимыми между платформами, а проверяющим не нужен доступ к закрытому тексту работы.</p>
+              </div>
+              <ul class="policy-list">
+                <li>EDP оплачивает AI-проверки, выпуск сертификатов и доступ к API верификации.</li>
+                <li>Сжигание части комиссии снижает обращающееся предложение при росте спроса.</li>
+                <li>Валидаторы получают вознаграждение за подтверждение хешей и доступности metadata.</li>
+                <li>Казначейство финансирует гранты вузам и развитие AI-моделей.</li>
+              </ul>
+            </section>
+
+            <section class="surface">
+              <div class="section-title">
+                <span class="section-kicker">Pricing model</span>
+                <h2>Симулятор спроса</h2>
+              </div>
+              <label class="range-field">
+                Проверок в месяц <span id="monthlyChecksValue">4 500</span>
+                <input id="monthlyChecks" type="range" min="100" max="20000" step="100" value="4500" />
+              </label>
+              <label class="range-field">
+                Средний stake валидатора <span id="validatorStakeValue">22 000 EDP</span>
+                <input id="validatorStake" type="range" min="1000" max="100000" step="1000" value="22000" />
+              </label>
+              <div class="sim-grid">
+                <div>
+                  <span>Выручка</span>
+                  <strong id="simRevenue">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Сожжено</span>
+                  <strong id="simBurn">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Валидаторам</span>
+                  <strong id="simRewards">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Treasury</span>
+                  <strong id="simTreasury">0 EDP</strong>
+                </div>
+                <div>
+                  <span>Валидаторов</span>
+                  <strong id="simValidators">0</strong>
+                </div>
+                <div>
+                  <span>APR валидатора</span>
+                  <strong id="simApr">0%</strong>
+                </div>
+              </div>
+              <p class="economy-note">Формула: <code>monthly checks * 27 EDP</code>. Дальше комиссия делится на burn, rewards и treasury. APR приблизительный и нужен для демонстрации устойчивости стимулов.</p>
+            </section>
+
+            <section class="surface competitor-panel">
+              <div class="section-title">
+                <span class="section-kicker">Positioning</span>
+                <h2>Отличия от конкурентов</h2>
+              </div>
+              <div class="comparison-grid">
+                <div>
+                  <strong>Обычный антиплагиат</strong>
+                  <span>Находит текстовые совпадения и показывает процент похожести. Обычно не доказывает, что именно этот отчет существовал в конкретный момент времени.</span>
+                </div>
+                <div>
+                  <strong>Turnitin и аналоги</strong>
+                  <span>Имеют сильные базы источников, но работают как централизованный сервис: результат зависит от доступа к платформе и не является переносимым NFT-сертификатом студента.</span>
+                </div>
+                <div>
+                  <strong>EduProof AI</strong>
+                  <span>Объединяет AI-рецензию, антиплагиат, IPFS metadata, хеш работы и запись в смарт-контракте. Проверяющему не нужен доступ к исходному тексту.</span>
+                </div>
+              </div>
+              <div class="comparison-table">
+                <div class="comparison-row comparison-head">
+                  <span>Критерий</span>
+                  <span>Классический сервис</span>
+                  <span>EduProof AI</span>
+                </div>
+                <div class="comparison-row">
+                  <span>Доказуемость результата</span>
+                  <span>Отчет хранится внутри сервиса, внешняя проверка ограничена.</span>
+                  <span>Хеш отчета и metadata URI фиксируются в реестре, результат можно проверить по Token ID.</span>
+                </div>
+                <div class="comparison-row">
+                  <span>Приватность работы</span>
+                  <span>Часто требуется загрузка полного текста в закрытую базу платформы.</span>
+                  <span>В блокчейн попадают только хеши и ссылка на metadata, полный текст не публикуется.</span>
+                </div>
+                <div class="comparison-row">
+                  <span>Переносимость сертификата</span>
+                  <span>Студент зависит от аккаунта в конкретной системе.</span>
+                  <span>NFT-сертификат можно показать вузу, работодателю или грантовой комиссии без раскрытия работы.</span>
+                </div>
+                <div class="comparison-row">
+                  <span>AI-оценка качества</span>
+                  <span>Фокус обычно на похожести текста.</span>
+                  <span>Дополнительно оцениваются структура, стиль автора, риск генерации и рекомендации по доработке.</span>
+                </div>
+                <div class="comparison-row">
+                  <span>Экономика платформы</span>
+                  <span>Оплата идет оператору сервиса.</span>
+                  <span>EDP распределяет комиссию между burn, валидаторами и treasury для развития AI-моделей.</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-architecture">
+          <div class="surface">
+            <div class="section-title">
+              <span class="section-kicker">System design</span>
+              <h2>Архитектура платформы</h2>
+            </div>
+            <div class="architecture-map" aria-label="Архитектурная схема">
+              <div>
+                <strong>Browser</strong>
+                <span>форма работы, кошелек, проверка сертификата</span>
+              </div>
+              <i></i>
+              <div>
+                <strong>Backend API</strong>
+                <span>антиплагиат, хеши, orchestration</span>
+              </div>
+              <i></i>
+              <div>
+                <strong>AI-модель</strong>
+                <span>Ollama или OpenAI-compatible рецензент</span>
+              </div>
+              <i></i>
+              <div>
+                <strong>IPFS -> Smart Contract</strong>
+                <span>metadata, mint, blockchain registry</span>
+              </div>
+            </div>
+            <div class="module-grid">
+              <article>
+                <h3>Frontend</h3>
+                <p>Статическое приложение на HTML/CSS/JS. Демо-алгоритм формирует отчет и локальный NFT-реестр через localStorage.</p>
+              </article>
+              <article>
+                <h3>Backend stage</h3>
+                <p>Node.js API принимает файлы, вызывает AI-модель, пишет metadata в IPFS и отправляет транзакцию mint от имени авторизованного вуза.</p>
+              </article>
+              <article>
+                <h3>Blockchain</h3>
+                <p>Контракт хранит tokenId, хеш студента, хеш работы, хеш AI-отчета, балл и статус отзыва сертификата.</p>
+              </article>
+            </div>
+            <div class="architecture-detail">
+              <div class="section-title compact-title">
+                <span class="section-kicker">Detailed data flow</span>
+                <h3>Как проходит одна проверка</h3>
+              </div>
+
+              <ol class="architecture-flow">
+                <li>
+                  <span>01</span>
+                  <div>
+                    <strong>Browser -> Backend API</strong>
+                    <p>Студент вводит автора, вуз, название и текст работы. Клиент отправляет JSON-заявку в `/api/analyze-work`, а интерфейс сразу показывает текущий этап pipeline.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>02</span>
+                  <div>
+                    <strong>Backend orchestration</strong>
+                    <p>Сервер нормализует текст, считает `workHash`, запускает локальный антиплагиат по шинглам и готовит запрос к AI-модели.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>03</span>
+                  <div>
+                    <strong>AI-модель</strong>
+                    <p>Ollama или OpenAI-compatible модель оценивает оригинальность, академическую структуру, стиль автора и риск искусственной генерации. Если модель недоступна, включается локальная эвристика.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>04</span>
+                  <div>
+                    <strong>IPFS metadata</strong>
+                    <p>Backend формирует `reportHash` и metadata JSON: баллы, краткий AI-отчет, совпадения, CID и ссылку `ipfs://...`. Полный текст работы в блокчейн не записывается.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>05</span>
+                  <div>
+                    <strong>Smart Contract</strong>
+                    <p>Контракт `EduProofCertificate` выпускает NFT-сертификат и сохраняет `studentHash`, `workHash`, `reportHash`, `metadataURI`, итоговый балл и статус отзыва.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>06</span>
+                  <div>
+                    <strong>Blockchain Registry</strong>
+                    <p>Транзакция попадает в реестр. Преподаватель, вуз или работодатель проверяет Token ID, сверяет хеши и видит, что сертификат не был отозван.</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div class="architecture-data-grid">
+                <article>
+                  <span>On-chain</span>
+                  <strong>Минимум публичных данных</strong>
+                  <p>Token ID, хеши, score, metadata URI, issuer, owner и флаг revoked. Это дает проверяемость без публикации исходной работы.</p>
+                </article>
+                <article>
+                  <span>Off-chain</span>
+                  <strong>AI-отчет и metadata</strong>
+                  <p>IPFS-слой хранит отчет и доказательства проверки. В MVP это совместимое локальное хранилище `storage/ipfs`, дальше его можно заменить на Pinata/Web3.Storage.</p>
+                </article>
+                <article>
+                  <span>Fallback</span>
+                  <strong>Демо работает без внешних сервисов</strong>
+                  <p>Если Ganache или Ollama не запущены, приложение сохраняет результат в локальный registry и использует встроенную модель оценки, чтобы защита проекта не ломалась.</p>
+                </article>
+                <article>
+                  <span>Verification</span>
+                  <strong>Проверка подлинности</strong>
+                  <p>Проверяющий вводит Token ID или хеш работы. Система находит сертификат, показывает статус, балл, issuer, CID и transaction hash.</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="tab-roadmap">
+          <div class="surface">
+            <div class="section-title">
+              <span class="section-kicker">Project plan</span>
+              <h2>Roadmap</h2>
+            </div>
+            <div class="roadmap-board">
+              <article class="roadmap-phase done">
+                <div class="roadmap-phase-head">
+                  <span>Phase 01</span>
+                  <strong>Фундамент MVP</strong>
+                  <em>готово</em>
+                </div>
+                <p>Собрать приложение в одном репозитории и сделать демонстрационный сценарий без внешних зависимостей.</p>
+                <div class="roadmap-deliverables">
+                  <span>UI проверки</span>
+                  <span>Node.js API</span>
+                  <span>локальный registry</span>
+                  <span>отчет AI</span>
+                </div>
+                <small>Критерий: пользователь загружает текст, получает score, hash и NFT-preview.</small>
+              </article>
+
+              <article class="roadmap-phase active">
+                <div class="roadmap-phase-head">
+                  <span>Phase 02</span>
+                  <strong>AI + антиплагиат</strong>
+                  <em>текущий этап</em>
+                </div>
+                <p>Усилить проверку учебных работ: локальная нейросеть, корпус источников, совпадения по шинглам и объяснимый отчет.</p>
+                <div class="roadmap-deliverables">
+                  <span>Ollama model</span>
+                  <span>5-shingles</span>
+                  <span>plagiarism risk</span>
+                  <span>fallback heuristics</span>
+                </div>
+                <small>Критерий: отчет показывает оригинальность, найденные источники, структуру и причину выставленного балла.</small>
+              </article>
+
+              <article class="roadmap-phase done">
+                <div class="roadmap-phase-head">
+                  <span>Phase 03</span>
+                  <strong>Smart Contract + Ganache</strong>
+                  <em>локально готово</em>
+                </div>
+                <p>Truffle/Ganache уже подключены: контракт компилируется и деплоится из этого репозитория, backend умеет делать mint через Ganache RPC. Если Ganache не запущен, включается fallback registry. Следующий шаг после локальной сети - Polygon Amoy и MetaMask.</p>
+                <div class="roadmap-deliverables">
+                  <span>EduProofCertificate</span>
+                  <span>Ganache RPC</span>
+                  <span>Truffle migrate</span>
+                  <span>contract mint</span>
+                </div>
+                <small>Критерий: при запущенном Ganache и выполненной migration Token ID, tx hash и metadataURI приходят из реального вызова контракта.</small>
+              </article>
+
+              <article class="roadmap-phase">
+                <div class="roadmap-phase-head">
+                  <span>Phase 04</span>
+                  <strong>IPFS и приватность</strong>
+                  <em>инфраструктура</em>
+                </div>
+                <p>Разделить публичные и приватные данные: в блокчейн пишутся только хеши, а отчет и metadata закрепляются в IPFS.</p>
+                <div class="roadmap-deliverables">
+                  <span>Pinata/Web3.Storage</span>
+                  <span>CID pinning</span>
+                  <span>metadata schema</span>
+                  <span>content privacy</span>
+                </div>
+                <small>Критерий: проверяющий может сверить сертификат без доступа к полному тексту работы.</small>
+              </article>
+
+              <article class="roadmap-phase">
+                <div class="roadmap-phase-head">
+                  <span>Phase 05</span>
+                  <strong>Пилот с вузом</strong>
+                  <em>валидация рынка</em>
+                </div>
+                <p>Запустить ограниченный пилот для кафедры: преподаватель создает проверки, студент видит результат, внешний проверяющий подтверждает сертификат.</p>
+                <div class="roadmap-deliverables">
+                  <span>кабинет преподавателя</span>
+                  <span>batch upload</span>
+                  <span>API verify</span>
+                  <span>consent flow</span>
+                </div>
+                <small>Критерий: 30-50 работ проходят проверку, а сертификаты можно независимо найти в реестре.</small>
+              </article>
+
+              <article class="roadmap-phase">
+                <div class="roadmap-phase-head">
+                  <span>Phase 06</span>
+                  <strong>Production и токеномика</strong>
+                  <em>масштабирование</em>
+                </div>
+                <p>Подготовить аудит, мониторинг, EDP-экономику, роли валидаторов и публичную документацию для подключения новых вузов.</p>
+                <div class="roadmap-deliverables">
+                  <span>security audit</span>
+                  <span>token rules</span>
+                  <span>monitoring</span>
+                  <span>partner docs</span>
+                </div>
+                <small>Критерий: платформа может обслуживать несколько организаций и проверяемые публичные сертификаты.</small>
+              </article>
+            </div>
+
+            <ol class="timeline legacy-roadmap">
+              <li class="done">
+                <span>Этап 1</span>
+                <strong>MVP интерфейса и демо-реестра</strong>
+                <p>Форма проверки, AI-скоринг, локальный выпуск NFT-сертификата.</p>
+              </li>
+              <li class="active">
+                <span>Этап 2</span>
+                <strong>Смарт-контракт и тестовая сеть</strong>
+                <p>Деплой EduProofCertificate в Polygon Amoy, подключение кошелька и ролей вузов.</p>
+              </li>
+              <li>
+                <span>Этап 3</span>
+                <strong>AI backend и IPFS</strong>
+                <p>Загрузка DOCX/PDF, независимое хранение metadata и проверяемые AI-отчеты.</p>
+              </li>
+              <li>
+                <span>Этап 4</span>
+                <strong>Пилот с кафедрой</strong>
+                <p>Личный кабинет преподавателя, API верификации и выпуск сертификатов для итоговых работ.</p>
+              </li>
+            </ol>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

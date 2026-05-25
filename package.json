@@ -1,0 +1,16 @@
+{
+  "name": "eduproof-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EduProof AI demo with neural academic review and NFT certificates.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check app.js && node --check server.js && node --check tools/truffle-mint-eduproof.js",
+    "contract:compile": "npx truffle compile --all",
+    "contract:migrate": "npx truffle migrate --reset --network development",
+    "dev": "node server.js"
+  },
+  "devDependencies": {
+    "truffle": "^5.11.5"
+  }
+}

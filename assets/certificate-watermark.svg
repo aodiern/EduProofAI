@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620" role="img" aria-label="EduProof certificate watermark">
+  <rect width="900" height="620" fill="#fff7df"/>
+  <g fill="none" stroke="#d4a72c" stroke-width="2" opacity=".45">
+    <path d="M80 70h740v480H80z"/>
+    <path d="M110 100h680v420H110z"/>
+    <circle cx="450" cy="310" r="150"/>
+    <circle cx="450" cy="310" r="115"/>
+    <path d="M330 310h240M450 190v240"/>
+  </g>
+  <g fill="#0f766e" opacity=".08">
+    <path d="M450 165 574 237v146L450 455 326 383V237z"/>
+    <path d="M450 218 528 263v92L450 400 372 355v-92z"/>
+  </g>
+  <g fill="#b7791f" opacity=".13">
+    <circle cx="120" cy="112" r="28"/>
+    <circle cx="780" cy="508" r="28"/>
+    <circle cx="780" cy="112" r="18"/>
+    <circle cx="120" cy="508" r="18"/>
+  </g>
+</svg>
