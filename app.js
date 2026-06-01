@@ -1,20 +1,65 @@
 const STORAGE_KEY = "eduproof.registry.v1";
 const BALANCE_KEY = "eduproof.balance.v1";
+const ROLE_KEY = "eduproof.role.v1";
 const DEFAULT_BALANCE = 1240;
 const BASE_FEE = 18;
 const BURN_RATE = 0.35;
 const VALIDATOR_RATE = 0.4;
 const TREASURY_RATE = 0.25;
 
-const sampleText = `EduProof AI предлагает децентрализованную платформу проверки учебных работ. Студент загружает текст, система строит AI-отчет об оригинальности, академической структуре и авторском стиле, после чего в блокчейн записывается хеш работы и выпускается непередаваемый NFT-сертификат.
+const ROLES = {
+  student: {
+    title: "Студент",
+    summary: "Загружает работу, запускает AI-проверку и получает сертификат после подтверждения issuer.",
+    permissions: ["Заявка", "AI-проверка", "Экспорт отчета"],
+    canSubmit: true,
+    canMint: false,
+    canVerify: true,
+    canExport: true,
+    canReset: false,
+  },
+  issuer: {
+    title: "Преподаватель / issuer",
+    summary: "Проверяет работу, подтверждает результат и выпускает NFT-сертификат через смарт-контракт.",
+    permissions: ["AI-проверка", "Выпуск NFT", "Реестр", "Экспорт"],
+    canSubmit: true,
+    canMint: true,
+    canVerify: true,
+    canExport: true,
+    canReset: false,
+  },
+  verifier: {
+    title: "Проверяющий",
+    summary: "Проверяет уже выпущенные сертификаты по Token ID или хешу без доступа к полному тексту работы.",
+    permissions: ["Реестр", "Верификация", "Экспорт реестра"],
+    canSubmit: false,
+    canMint: false,
+    canVerify: true,
+    canExport: true,
+    canReset: false,
+  },
+  admin: {
+    title: "Администратор",
+    summary: "Управляет демо-состоянием, ролями, issuer-логикой и может выполнять все операции MVP.",
+    permissions: ["Все действия", "Сброс демо", "Политики", "Аудит"],
+    canSubmit: true,
+    canMint: true,
+    canVerify: true,
+    canExport: true,
+    canReset: true,
+  },
+};
 
-Проект отличается от централизованных сервисов тем, что результат проверки можно независимо подтвердить: вуз, работодатель или грантовая комиссия вводит Token ID и видит статус сертификата без доступа к закрытому тексту работы. Экономика EDP связывает оплату проверки, сжигание комиссии, вознаграждение валидаторов и развитие AI-моделей.
+const sampleText = `EduProof AI предлагает децентрализованную платформу проверки учебных работ. Студент загружает текст, система строит AI-отчет об оригинальности, академической структуре и авторском стиле, после чего issuer подтверждает результат и выпускает непередаваемый NFT-сертификат. В блокчейн записываются хеш работы, хеш отчета, metadata URI, итоговый score и статус сертификата.
 
-Архитектура включает клиентский интерфейс, AI API, IPFS-хранилище metadata и смарт-контракт EduProofCertificate. На первом этапе реализуется MVP, далее добавляются кошелек, тестовая сеть Polygon Amoy, backend для DOCX/PDF и пилот с кафедрой.`;
+Проект отличается от централизованных сервисов тем, что результат проверки можно независимо подтвердить: вуз, работодатель или грантовая комиссия вводит Token ID и видит статус сертификата без доступа к закрытому тексту работы. Ролевая модель разделяет обязанности: студент отправляет работу, преподаватель или вуз в роли issuer выпускает сертификат, проверяющий валидирует запись, администратор управляет политиками и issuer-правами.
+
+Экономика EDP связывает оплату проверки, 35% burn, 40% вознаграждение валидаторов и 25% treasury проекта. Архитектура включает клиентский интерфейс, Backend API, локальную или OpenAI-compatible нейросеть, IPFS-like хранилище metadata, Ganache/Truffle и смарт-контракт EduProofCertificate. На этапе MVP роль хранится в интерфейсе для демонстрации, а в production она должна подтверждаться авторизацией, подписью кошелька и проверкой смарт-контракта.`;
 
 const state = {
   registry: loadRegistry(),
   balance: loadBalance(),
+  activeRole: loadRole(),
   pendingCertificate: null,
   lastReport: null,
 };
@@ -73,6 +118,9 @@ const els = {
   simValidators: document.querySelector("#simValidators"),
   simApr: document.querySelector("#simApr"),
   resetDemo: document.querySelector("#resetDemo"),
+  activeRole: document.querySelector("#activeRole"),
+  roleSummary: document.querySelector("#roleSummary"),
+  rolePermissions: document.querySelector("#rolePermissions"),
   backendStatus: document.querySelector("#backendStatus"),
   aiStatus: document.querySelector("#aiStatus"),
   corpusStatus: document.querySelector("#corpusStatus"),
@@ -97,6 +145,7 @@ function init() {
   updateEconomy();
   updateTextStats();
   updateStrictnessLabel();
+  updateRoleUi();
   refreshSystemStatus();
   bindEvents();
 }
@@ -129,12 +178,43 @@ function bindEvents() {
   els.monthlyChecks.addEventListener("input", updateEconomy);
   els.validatorStake.addEventListener("input", updateEconomy);
   els.resetDemo.addEventListener("click", resetDemo);
+  els.activeRole.addEventListener("change", () => {
+    state.activeRole = els.activeRole.value;
+    localStorage.setItem(ROLE_KEY, state.activeRole);
+    updateRoleUi();
+    toast(`Активная роль: ${currentRole().title}.`);
+  });
 }
 
 function switchTab(tabName) {
   els.tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
   els.panels.forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${tabName}`));
   document.querySelector(".workspace")?.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+
+function currentRole() {
+  return ROLES[state.activeRole] || ROLES.issuer;
+}
+
+function updateRoleUi() {
+  const role = currentRole();
+  els.activeRole.value = state.activeRole;
+  els.roleSummary.innerHTML = `<strong>${escapeHtml(role.title)}</strong><span>${escapeHtml(role.summary)}</span>`;
+  els.rolePermissions.innerHTML = role.permissions.map((permission) => `<span>${escapeHtml(permission)}</span>`).join("");
+
+  els.workForm.classList.toggle("is-locked", !role.canSubmit);
+  [els.loadSample, els.fileInput, els.workText, els.authorName, els.institution, els.workTitle, els.workType, els.strictness, els.publicRegistry].forEach(
+    (control) => {
+      control.disabled = !role.canSubmit;
+    },
+  );
+  els.analyzeButton.disabled = !role.canSubmit;
+  els.mintButton.disabled = !role.canMint;
+  els.exportReport.disabled = !role.canExport;
+  els.exportRegistry.disabled = !role.canExport;
+  els.verifyButton.disabled = !role.canVerify;
+  els.resetDemo.disabled = !role.canReset;
+  els.resetDemo.title = role.canReset ? "Сбросить демо" : "Сброс доступен администратору";
 }
 
 async function handleFileUpload(event) {
@@ -159,6 +239,12 @@ async function handleFileUpload(event) {
 }
 
 async function runReview() {
+  const role = currentRole();
+  if (!role.canSubmit) {
+    toast("Эта роль может проверять реестр, но не отправляет новые работы на AI-анализ.");
+    return;
+  }
+
   const text = els.workText.value.trim();
   if (text.length < 120) {
     toast("Добавьте более подробный текст работы для анализа.");
@@ -187,6 +273,8 @@ async function runReview() {
       institution: els.institution.value.trim() || "Не указан",
       workType: els.workType.value,
       publicRegistry: els.publicRegistry.checked,
+      submittedByRole: state.activeRole,
+      submittedByRoleTitle: role.title,
       score: analysis.overall,
       originality: analysis.originality,
       authorship: analysis.authorship,
@@ -364,6 +452,7 @@ function renderAnalysis(cert) {
   els.txValue.textContent = cert.transactionHash ? shortHash(cert.transactionHash) : "-";
 
   els.reportBox.innerHTML = `
+    <p><strong>Роль:</strong> ${escapeHtml(cert.submittedByRoleTitle || "Не указана")}${cert.issuedByRoleTitle ? ` · issuer: ${escapeHtml(cert.issuedByRoleTitle)}` : ""}</p>
     <p><strong>AI engine:</strong> ${escapeHtml(formatAiEngine(cert.aiSource, cert.aiModel))}</p>
     <p><strong>Антиплагиат:</strong> ${cert.plagiarism.similarity}% совпадений, ${cert.plagiarism.uniquePercent}% уникальности · ${escapeHtml(cert.plagiarism.status)}</p>
     <p><strong>Метод:</strong> ${escapeHtml(cert.plagiarism.method)} · источников: ${cert.plagiarism.checkedSources}</p>
@@ -399,6 +488,12 @@ function setScore(id, value) {
 }
 
 async function mintCertificate() {
+  const role = currentRole();
+  if (!role.canMint) {
+    toast("Выпуск NFT доступен только роли issuer или администратору.");
+    return;
+  }
+
   const cert = state.pendingCertificate;
   if (!cert) {
     toast("Сначала выполните AI-проверку.");
@@ -413,6 +508,8 @@ async function mintCertificate() {
     return;
   }
 
+  cert.issuedByRole = state.activeRole;
+  cert.issuedByRoleTitle = role.title;
   const minted = await mintOnBackend(cert);
 
   state.registry.unshift(minted);
@@ -603,7 +700,7 @@ function updateStrictnessLabel() {
 }
 
 function setAnalyzeLoading(isLoading) {
-  els.analyzeButton.disabled = isLoading;
+  els.analyzeButton.disabled = isLoading || !currentRole().canSubmit;
   els.analyzeButton.classList.toggle("is-loading", isLoading);
   els.analyzeButton.querySelector("span").textContent = isLoading ? "Проверка..." : "Проверить работу";
 }
@@ -619,6 +716,11 @@ function setProcessStep(activeStep) {
 }
 
 function verifyCertificate() {
+  if (!currentRole().canVerify) {
+    toast("У текущей роли нет доступа к проверке реестра.");
+    return;
+  }
+
   const value = els.verifyInput.value.trim().toLowerCase();
   const match = state.registry.find(
     (item) => item.tokenId.toLowerCase() === value || item.workHash.toLowerCase() === value || shortHash(item.workHash).toLowerCase() === value,
@@ -669,6 +771,11 @@ function updateEconomy() {
 }
 
 function exportReport() {
+  if (!currentRole().canExport) {
+    toast("Экспорт отчета недоступен для текущей роли.");
+    return;
+  }
+
   const report = state.pendingCertificate || state.lastReport || state.registry[0];
   if (!report) {
     toast("Сначала выполните AI-проверку, чтобы экспортировать отчет.");
@@ -684,6 +791,11 @@ function exportReport() {
       author: report.publicRegistry === false ? "hidden" : report.author,
       institution: report.institution,
       workType: report.workType,
+      roles: {
+        submittedBy: report.submittedByRoleTitle || null,
+        issuedBy: report.issuedByRoleTitle || null,
+        exportedBy: currentRole().title,
+      },
       score: report.score,
       originality: report.originality,
       authorship: report.authorship,
@@ -719,6 +831,11 @@ function exportReport() {
 }
 
 function exportRegistry() {
+  if (!currentRole().canExport) {
+    toast("Экспорт реестра недоступен для текущей роли.");
+    return;
+  }
+
   if (!state.registry.length) {
     toast("Реестр пуст.");
     return;
@@ -747,6 +864,11 @@ function downloadJson(filename, value) {
 }
 
 function resetDemo() {
+  if (!currentRole().canReset) {
+    toast("Сброс демо-состояния доступен только администратору.");
+    return;
+  }
+
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(BALANCE_KEY);
   state.registry = [];
@@ -812,6 +934,11 @@ function loadRegistry() {
 function loadBalance() {
   const stored = Number(localStorage.getItem(BALANCE_KEY));
   return Number.isFinite(stored) && stored > 0 ? stored : DEFAULT_BALANCE;
+}
+
+function loadRole() {
+  const stored = localStorage.getItem(ROLE_KEY);
+  return ROLES[stored] ? stored : "issuer";
 }
 
 function persist() {

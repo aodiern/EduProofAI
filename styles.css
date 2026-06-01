@@ -295,10 +295,18 @@ p {
 
 h1 {
   max-width: 900px;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   font-size: 30px;
   line-height: 1.16;
   letter-spacing: 0;
+}
+
+.hero-description {
+  max-width: 880px;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 h2 {
@@ -325,6 +333,61 @@ h3 {
   background: var(--surface);
   border-radius: 8px;
   box-shadow: var(--shadow);
+}
+
+.role-panel {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.role-panel label {
+  font-size: 12px;
+}
+
+.role-panel select {
+  min-height: 38px;
+}
+
+.role-summary {
+  display: grid;
+  gap: 4px;
+}
+
+.role-summary strong,
+.role-summary span {
+  display: block;
+}
+
+.role-summary strong {
+  font-size: 14px;
+}
+
+.role-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.role-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.role-chips span {
+  padding: 5px 7px;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 999px;
+  background: #eef8f5;
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .wallet-label {
@@ -381,6 +444,10 @@ h3 {
 .form-panel {
   display: grid;
   gap: 14px;
+}
+
+.form-panel.is-locked {
+  opacity: 0.68;
 }
 
 .field-grid {
@@ -497,8 +564,17 @@ input[type="range"] {
 
 .primary-button:disabled,
 .secondary-button:disabled {
-  cursor: progress;
+  cursor: not-allowed;
   opacity: 0.72;
+}
+
+.primary-button.is-loading:disabled {
+  cursor: progress;
+}
+
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .primary-button.is-loading svg {
@@ -1360,6 +1436,14 @@ tbody tr:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .role-panel {
+    flex: 1 1 320px;
+  }
+
   .score-panel,
   .certificate-panel {
     position: static;
@@ -1389,6 +1473,11 @@ tbody tr:hover {
   .control-row,
   .action-row {
     display: grid;
+  }
+
+  .role-panel,
+  .wallet-panel {
+    width: 100%;
   }
 
   h1 {

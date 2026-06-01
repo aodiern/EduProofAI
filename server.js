@@ -192,6 +192,10 @@ async function handleMint(req, res) {
     reportHash: certificate.reportHash,
     metadataURI: certificate.metadataURI,
     issuer: certificate.institution || "EduProof AI issuer",
+    submittedByRole: certificate.submittedByRole || null,
+    submittedByRoleTitle: certificate.submittedByRoleTitle || null,
+    issuedByRole: certificate.issuedByRole || "issuer",
+    issuedByRoleTitle: certificate.issuedByRoleTitle || "Преподаватель / issuer",
     issuedAt,
     blockNumber,
   };

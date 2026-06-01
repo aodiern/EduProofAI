@@ -63,7 +63,11 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Децентрализованная проверка учебных работ</p>
-            <h1>AI-анализ, прозрачный реестр и NFT-сертификат подлинности</h1>
+            <h1>EduProof AI проверяет работы, фиксирует отчет в реестре и выпускает NFT-сертификат</h1>
+            <p class="hero-description">
+              Платформа объединяет AI-рецензирование, локальный антиплагиат, IPFS metadata, смарт-контракт
+              EduProofCertificate и ролевую модель для студента, issuer, проверяющего и администратора.
+            </p>
           </div>
           <div class="wallet-panel">
             <span class="wallet-label">Баланс</span>
@@ -72,6 +76,22 @@
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M20 9a8 8 0 0 0-13.7-3.7L4 7.6"/><path d="M4 15a8 8 0 0 0 13.7 3.7L20 16.4"/></svg>
             </button>
           </div>
+          <section class="role-panel" aria-label="Ролевая модель">
+            <label>
+              Роль
+              <select id="activeRole" name="activeRole">
+                <option value="issuer">Преподаватель / issuer</option>
+                <option value="student">Студент</option>
+                <option value="verifier">Проверяющий</option>
+                <option value="admin">Администратор</option>
+              </select>
+            </label>
+            <div class="role-summary" id="roleSummary">
+              <strong>Issuer</strong>
+              <span>Проверяет работы и выпускает NFT-сертификаты.</span>
+            </div>
+            <div class="role-chips" id="rolePermissions" aria-label="Права роли"></div>
+          </section>
         </header>
 
         <section class="ops-dashboard" aria-label="Статус системы">
@@ -572,6 +592,10 @@
                 <h3>Blockchain</h3>
                 <p>Контракт хранит tokenId, хеш студента, хеш работы, хеш AI-отчета, балл и статус отзыва сертификата.</p>
               </article>
+              <article>
+                <h3>Ролевая модель</h3>
+                <p>Студент отправляет работу, issuer выпускает сертификат, проверяющий валидирует запись, администратор управляет демо-состоянием и политиками.</p>
+              </article>
             </div>
             <div class="architecture-detail">
               <div class="section-title compact-title">
@@ -724,6 +748,22 @@
               <article class="roadmap-phase">
                 <div class="roadmap-phase-head">
                   <span>Phase 05</span>
+                  <strong>Авторизация и роли</strong>
+                  <em>безопасность</em>
+                </div>
+                <p>Заменить демо-переключатель роли на настоящую авторизацию: вход через аккаунт вуза или MetaMask, проверка роли на backend и сверка issuer/admin-прав со смарт-контрактом.</p>
+                <div class="roadmap-deliverables">
+                  <span>login / wallet sign</span>
+                  <span>JWT session</span>
+                  <span>role middleware</span>
+                  <span>issuer registry</span>
+                </div>
+                <small>Критерий: студент не может выпустить NFT, проверяющий не может изменить реестр, а issuer подтверждается backend-сессией и контрактом `onlyIssuer`.</small>
+              </article>
+
+              <article class="roadmap-phase">
+                <div class="roadmap-phase-head">
+                  <span>Phase 06</span>
                   <strong>Пилот с вузом</strong>
                   <em>валидация рынка</em>
                 </div>
@@ -739,7 +779,7 @@
 
               <article class="roadmap-phase">
                 <div class="roadmap-phase-head">
-                  <span>Phase 06</span>
+                  <span>Phase 07</span>
                   <strong>Production и токеномика</strong>
                   <em>масштабирование</em>
                 </div>
