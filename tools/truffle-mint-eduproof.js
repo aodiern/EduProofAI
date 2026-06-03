@@ -9,7 +9,7 @@ module.exports = async function (callback) {
       throw new Error("EDUPROOF_MINT_PAYLOAD is not set.");
     }
 
-    const payload = JSON.parse(fs.readFileSync(payloadPath, "utf8"));
+    const payload = JSON.parse(fs.readFileSync(payloadPath, "utf8").replace(/^\uFEFF/, ""));
     const accounts = await web3.eth.getAccounts();
     const issuer = process.env.EDUPROOF_ISSUER || accounts[0];
     const studentWallet = process.env.EDUPROOF_STUDENT_WALLET || accounts[1] || accounts[0];

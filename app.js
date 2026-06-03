@@ -147,6 +147,8 @@ function init() {
   updateStrictnessLabel();
   updateRoleUi();
   refreshSystemStatus();
+  syncRegistryFromBackend();
+  syncWalletFromBackend();
   bindEvents();
 }
 
@@ -513,7 +515,7 @@ async function mintCertificate() {
   const minted = await mintOnBackend(cert);
 
   state.registry.unshift(minted);
-  state.balance = Math.round((state.balance - cert.fee) * 100) / 100;
+  await debitWalletOnBackend(cert.fee);
   state.lastReport = minted;
   state.pendingCertificate = null;
   persist();
@@ -522,6 +524,7 @@ async function mintCertificate() {
   els.txValue.textContent = minted.transactionHash ? shortHash(minted.transactionHash) : "-";
   setProcessStep("mint");
   refreshSystemStatus();
+  syncRegistryFromBackend({ silent: true });
   switchTab("registry");
   els.verifyInput.value = minted.tokenId;
   verifyCertificate();
@@ -595,6 +598,120 @@ function renderRegistry() {
       verifyCertificate();
     });
   });
+}
+
+async function syncRegistryFromBackend(options = {}) {
+  if (!window.location.protocol.startsWith("http")) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/registry");
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok || !Array.isArray(payload.registry)) {
+      throw new Error(payload.error || "Registry endpoint returned an error.");
+    }
+
+    const merged = mergeRegistry(payload.registry, state.registry);
+    const changed = JSON.stringify(merged) !== JSON.stringify(state.registry);
+    state.registry = merged;
+    persist();
+    renderRegistry();
+
+    if (changed && !options.silent) {
+      toast(`Р РµРµСЃС‚СЂ Р·Р°РіСЂСѓР¶РµРЅ СЃ backend: ${payload.registry.length} Р·Р°Рї.`);
+    }
+  } catch (error) {
+    console.warn("Registry sync failed:", error);
+    if (!options.silent) {
+      toast("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЂРµРµСЃС‚СЂ СЃ backend.");
+    }
+  }
+}
+
+function mergeRegistry(primary, secondary) {
+  const merged = [];
+  const seen = new Set();
+
+  [...primary, ...secondary].forEach((item) => {
+    if (!item || !item.tokenId) return;
+    const key = `${item.tokenId}:${item.workHash || ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(item);
+  });
+
+  return merged.sort((a, b) => new Date(b.issuedAt || 0) - new Date(a.issuedAt || 0));
+}
+
+async function syncWalletFromBackend(options = {}) {
+  if (!window.location.protocol.startsWith("http")) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/wallet");
+    const payload = await response.json().catch(() => ({}));
+    const balance = Number(payload.wallet?.balance);
+    if (!response.ok || !payload.ok || !Number.isFinite(balance)) {
+      throw new Error(payload.error || "Wallet endpoint returned an error.");
+    }
+
+    state.balance = Math.round(balance * 100) / 100;
+    persist();
+    updateBalance();
+  } catch (error) {
+    console.warn("Wallet sync failed:", error);
+    if (!options.silent) {
+      toast("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р±Р°Р»Р°РЅСЃ СЃ backend.");
+    }
+  }
+}
+
+async function debitWalletOnBackend(amount) {
+  if (!window.location.protocol.startsWith("http")) {
+    state.balance = Math.round((state.balance - amount) * 100) / 100;
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/wallet/debit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    const balance = Number(payload.wallet?.balance);
+    if (!response.ok || !payload.ok || !Number.isFinite(balance)) {
+      throw new Error(payload.error || "Wallet debit endpoint returned an error.");
+    }
+
+    state.balance = Math.round(balance * 100) / 100;
+  } catch (error) {
+    console.warn("Wallet debit failed, using browser balance fallback:", error);
+    state.balance = Math.round((state.balance - amount) * 100) / 100;
+  }
+}
+
+async function resetWalletOnBackend() {
+  if (!window.location.protocol.startsWith("http")) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/wallet/reset", { method: "POST" });
+    const payload = await response.json().catch(() => ({}));
+    const balance = Number(payload.wallet?.balance);
+    if (!response.ok || !payload.ok || !Number.isFinite(balance)) {
+      throw new Error(payload.error || "Wallet reset endpoint returned an error.");
+    }
+
+    state.balance = Math.round(balance * 100) / 100;
+    persist();
+    updateBalance();
+  } catch (error) {
+    console.warn("Wallet reset failed:", error);
+  }
 }
 
 async function refreshSystemStatus() {
@@ -879,6 +996,8 @@ function resetDemo() {
   updateBalance();
   renderRegistry();
   renderEmptyAnalysis();
+  syncRegistryFromBackend({ silent: true });
+  resetWalletOnBackend();
   toast("Демо-состояние сброшено.");
 }
 

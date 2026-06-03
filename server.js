@@ -14,6 +14,8 @@ const STORAGE_DIR = path.join(ROOT, "storage");
 const LOCAL_IPFS_DIR = path.join(STORAGE_DIR, "ipfs");
 const CHAIN_DIR = path.join(STORAGE_DIR, "chain");
 const REGISTRY_FILE = path.join(CHAIN_DIR, "blockchain-registry.json");
+const WALLET_FILE = path.join(CHAIN_DIR, "wallet-state.json");
+const DEFAULT_BALANCE = 1240;
 const CHAIN_MODE = (process.env.CHAIN_MODE || "truffle").toLowerCase();
 const TRUFFLE_PROJECT_DIR = path.resolve(ROOT, process.env.TRUFFLE_PROJECT_DIR || ".");
 const TRUFFLE_NETWORK = process.env.TRUFFLE_NETWORK || "development";
@@ -68,6 +70,25 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         registry: await loadBlockchainRegistry(),
       });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/wallet") {
+      sendJson(res, 200, {
+        ok: true,
+        wallet: await loadWalletState(),
+      });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/wallet/debit") {
+      await handleWalletDebit(req, res);
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/wallet/reset") {
+      const wallet = await saveWalletState({ balance: DEFAULT_BALANCE, updatedAt: new Date().toISOString() });
+      sendJson(res, 200, { ok: true, wallet });
       return;
     }
 
@@ -218,6 +239,28 @@ async function handleMint(req, res) {
   });
 }
 
+async function handleWalletDebit(req, res) {
+  const body = await readJsonBody(req);
+  const amount = Number(body.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    sendJson(res, 400, { ok: false, error: "Debit amount must be a positive number." });
+    return;
+  }
+
+  const wallet = await loadWalletState();
+  if (wallet.balance < amount) {
+    sendJson(res, 400, { ok: false, error: "Insufficient EDP balance." });
+    return;
+  }
+
+  const nextWallet = await saveWalletState({
+    balance: Math.round((wallet.balance - amount) * 100) / 100,
+    updatedAt: new Date().toISOString(),
+  });
+
+  sendJson(res, 200, { ok: true, wallet: nextWallet });
+}
+
 async function mintCertificateOnChain(txPayload) {
   if (CHAIN_MODE !== "truffle") {
     throw new Error(`CHAIN_MODE=${CHAIN_MODE}, real Truffle mint is disabled.`);
@@ -337,8 +380,12 @@ async function callRpc(method, params = [], timeoutMs = 1200) {
 
 function runTruffleMint(payloadPath) {
   const scriptPath = path.join(ROOT, "tools", "truffle-mint-eduproof.js");
-  const command = process.platform === "win32" ? "npx.cmd" : "npx";
-  const args = ["truffle", "exec", scriptPath, "--network", TRUFFLE_NETWORK];
+  const truffleScriptPath = path.relative(TRUFFLE_PROJECT_DIR, scriptPath).replace(/\\/g, "/");
+  const isWindows = process.platform === "win32";
+  const command = isWindows ? "cmd.exe" : "npx";
+  const args = isWindows
+    ? ["/d", "/s", "/c", `npx truffle exec ${truffleScriptPath} --network ${TRUFFLE_NETWORK}`]
+    : ["truffle", "exec", truffleScriptPath, "--network", TRUFFLE_NETWORK];
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -369,20 +416,24 @@ function runTruffleMint(payloadPath) {
     });
     child.on("close", (code) => {
       clearTimeout(timeout);
-      if (code !== 0) {
-        reject(new Error(stderr || stdout || `Truffle mint exited with code ${code}.`));
-        return;
-      }
-
       const line = stdout
         .split(/\r?\n/)
         .find((item) => item.startsWith("EDUPROOF_MINT_RESULT "));
+      if (line) {
+        resolve(JSON.parse(line.replace("EDUPROOF_MINT_RESULT ", "")));
+        return;
+      }
+
+      if (code !== 0) {
+        const details = [stderr, stdout].filter(Boolean).join("\n").trim();
+        reject(new Error(details || `Truffle mint exited with code ${code}.`));
+        return;
+      }
+
       if (!line) {
         reject(new Error(`Truffle mint did not return a result. ${stdout || stderr}`));
         return;
       }
-
-      resolve(JSON.parse(line.replace("EDUPROOF_MINT_RESULT ", "")));
     });
   });
 }
@@ -722,6 +773,30 @@ async function loadBlockchainRegistry() {
 async function saveBlockchainRegistry(registry) {
   await fs.mkdir(CHAIN_DIR, { recursive: true });
   await fs.writeFile(REGISTRY_FILE, JSON.stringify(registry, null, 2), "utf8");
+}
+
+async function loadWalletState() {
+  const raw = await fs.readFile(WALLET_FILE, "utf8").catch(() => "");
+  try {
+    const parsed = JSON.parse(raw);
+    const balance = Number(parsed.balance);
+    return {
+      balance: Number.isFinite(balance) && balance >= 0 ? balance : DEFAULT_BALANCE,
+      updatedAt: parsed.updatedAt || null,
+    };
+  } catch {
+    return { balance: DEFAULT_BALANCE, updatedAt: null };
+  }
+}
+
+async function saveWalletState(wallet) {
+  const normalized = {
+    balance: Math.round(Number(wallet.balance || 0) * 100) / 100,
+    updatedAt: wallet.updatedAt || new Date().toISOString(),
+  };
+  await fs.mkdir(CHAIN_DIR, { recursive: true });
+  await fs.writeFile(WALLET_FILE, JSON.stringify(normalized, null, 2), "utf8");
+  return normalized;
 }
 
 function nextTokenId(next) {
